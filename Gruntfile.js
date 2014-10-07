@@ -15,7 +15,6 @@ module.exports = function(grunt) {
                     expand: true,
                     cwd: 'src/',
                     src: [
-                        '**/*.css',
                         'ModalService.js'
                     ],
                     dest: 'build/'
@@ -31,15 +30,32 @@ module.exports = function(grunt) {
                 src: 'src/ModalService.js',
                 dest: 'build/ModalService.min.js'
             }
+        },
+
+        autoprefixer: {
+            build: {
+                options: {
+                    browsers: ['last 2 versions', 'ie >= 9', '> 1%']
+                },
+                files: [{
+                    expand: true,
+                    cwd: 'src/',
+                    src: [
+                        '**/*.css'
+                    ],
+                    dest: 'build/'
+                }]
+            }
         }
 
     });
 
+    grunt.loadNpmTasks('grunt-autoprefixer');
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-uglify');
 
     // Default task(s).
-    grunt.registerTask('default', ['clean', 'copy', 'uglify']);
+    grunt.registerTask('default', ['clean', 'copy', 'autoprefixer', 'uglify']);
 
 };

@@ -1,0 +1,24 @@
+.modal {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, .5);
+    transition: opacity .25s ease;
+}
+
+.modal-container {
+    max-width: 90%;
+    margin: 200px auto 0;
+    background: #ffffff;
+}
+
+.modal_isInvisible {
+    opacity: 0;
+}
+
+.modal_isActive {
+    opacity: 1;
+}
