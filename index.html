@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Modal Demo</title>
+    <link rel="stylesheet" href="build/modal-default.css" />
+    <style>
+
+    </style>
+</head>
+<body>
+    <button type="button" id="modal-demo">Click me for modal</button>
+
+    <script src="build/ModalService.js"></script>
+    <script>
+        var button = document.getElementById('modal-demo');
+        var service = new ModalService();
+        button.addEventListener('click', function() {
+            var modal = service.alert('Here you go!');
+        }, false);
+    </script>
+</body>
+</html>
