@@ -75,6 +75,24 @@
         return extended;
     };
 
+    var matches = (function() {
+        if (typeof Element.prototype.matches === 'function') {
+            return function(node, selector) {
+                return node.matches(selector);
+            }
+        }
+        var prefixes = ['webkit', 'ms', 'moz'];
+        for (var prefix in prefixes) {
+            if (typeof Element.prototype[prefix + 'MatchesSelector'] === 'function') {
+                return function(node, selector) {
+                    return node[prefix + 'MatchesSelector'](selector);
+                }
+            }
+        }
+
+        throw new Error('Unsupported: unable to match selectors.')
+    }());
+
     /**
      * Modal Instance constructor
      *
@@ -174,7 +192,16 @@
             this.exit();
             return;
         }
+
+        // check for close button
         var node = event.target;
+        while (node !== this.modalContent) {
+            if (matches(node, this.config.closeSelector)) {
+                this.exit();
+                break;
+            }
+            node = node.parentNode;
+        }
     };
 
     /**
