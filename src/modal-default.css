@@ -6,7 +6,7 @@
     right: 0;
     bottom: 0;
     background: rgba(255, 255, 255, .5);
-    transition: opacity .25s ease;
+    transition: all .5s ease;
 }
 
 .modal-container {
@@ -15,7 +15,8 @@
     background: #ffffff;
 }
 
-.modal_isInvisible {
+.modal_isPositioned {
+    display: block;
     opacity: 0;
 }
 

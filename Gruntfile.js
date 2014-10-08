@@ -15,7 +15,8 @@ module.exports = function(grunt) {
                     expand: true,
                     cwd: 'src/',
                     src: [
-                        'ModalService.js'
+                        'ModalService.js',
+                        'modals/*'
                     ],
                     dest: 'build/'
                 }]

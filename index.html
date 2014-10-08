@@ -13,18 +13,29 @@
 <body>
     <button type="button" id="modal-demo">Click me for modal</button>
 
-    <div class="modal">
-        <div class="modal-container">
-            This is my modal content
+    <script type="text/modal-template" id="modalTest">
+        <div class="modal">
+            <div class="modal-container" data-modal-content></div>
         </div>
-    </div>
+    </script>
+
+    <script type="text/modal-template" id="modalTest-content">
+        The actual Modal content!!!
+    </script>
+
+    <script type="text/modal-template" id="alertModal">
+        This is an alert! <button type="button" data-modal-close>Ok</button>
+    </script>
 
     <script src="build/ModalService.js"></script>
     <script>
         var button = document.getElementById('modal-demo');
-        var service = new ModalService();
+        var service = new ModalService({
+            skeleton: 'modalTest'
+        });
         button.addEventListener('click', function() {
-            var modal = service.alert('Here you go!');
+            window.modal = service.create('modalTest-content');
+            modal.open();
         }, false);
     </script>
 </body>
