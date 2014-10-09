@@ -7,12 +7,15 @@
     bottom: 0;
     background: rgba(255, 255, 255, .5);
     transition: all .5s ease;
+    text-align: center;
 }
 
 .modal-container {
+    display: inline-block;
     max-width: 90%;
     margin: 200px auto 0;
     background: #ffffff;
+    text-align: left;
 }
 
 .modal_isPositioned {

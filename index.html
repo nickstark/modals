@@ -6,18 +6,12 @@
     <link rel="stylesheet" href="build/modal-default.css" />
     <style>
         body {
-            background: #ffffbb;
+            background: papayawhip;
         }
     </style>
 </head>
 <body>
     <button type="button" id="modal-demo">Click me for modal</button>
-
-    <script type="text/modal-template" id="modalTest">
-        <div class="modal">
-            <div class="modal-container" data-modal-content></div>
-        </div>
-    </script>
 
     <script type="text/modal-template" id="modalTest-content">
         The actual Modal content!!!
@@ -31,7 +25,18 @@
     <script>
         var button = document.getElementById('modal-demo');
         var service = new ModalService({
-            skeleton: 'modalTest'
+            skeleton: 'modalTest',
+            templates: {
+                'modalTest': function(data) {
+                    return '<div class="modal"><div class="modal-container" data-modal-content>' + data.content + '</div></div>';
+                },
+                'modalTest-content': function(data) {
+                    return 'Some normal modal content';
+                },
+                'alertModal': function(data) {
+                    return data.alertText + '<button type="button" data-modal-close>Ok</button>';
+                }
+            }
         });
         button.addEventListener('click', function() {
             window.modal = service.alert('modalTest-content');

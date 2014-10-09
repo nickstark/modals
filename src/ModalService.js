@@ -10,6 +10,8 @@
 }(this, function () {
     'use strict';
 
+    var modalCounter = 0;
+
     // check for transition support
     var hasTransitions = (function() {
         var b = document.body || document.documentElement,
@@ -34,6 +36,7 @@
      */
     var defaults = {
         removeOnExit: true,
+        disableScroll: true,
         contentSelector: '[data-modal-content]',
         closeSelector: '[data-modal-close]',
         classes: {
@@ -41,7 +44,8 @@
             positioned: 'modal_isPositioned',
             active: 'modal_isActive'
         },
-        templates: {
+        templates: null,
+        templateNames: {
             alert: 'alertModal',
             confirm: 'confirmModal',
             prompt: 'promptModal'
@@ -99,10 +103,12 @@
      * @class ModalInstance
      * @constructor
      */
-    var ModalInstance = function(templateName, service) {
+    var ModalInstance = function(templateName, data, service) {
+        this.id = modalCounter;
         this.service = service;
         this.config = service.config;
         this.isOpen = false;
+        this.data = data;
 
         this.handleExitEnd = this._onExitEnd.bind(this);
         this.handleModalClick = this._onModalClick.bind(this);
@@ -112,17 +118,34 @@
 
     ModalInstance.prototype._loadTemplate = function(templateName) {
         var wrapper = document.createElement('div');
-        var template = document.getElementById(templateName);
+        var config = this.config;
+        var labelProp = 'label';
+        var label = this.data.label;
+        var desc = this._createDescription();
 
-        if (template === null) {
+        if (!(templateName in config.templates)) {
             throw new Error('Unable to find template (' + templateName + ')');
         }
 
-        wrapper.innerHTML = this.config.skeleton;
+        if (label.length && label.charAt(0) === '#') {
+            labelProp = 'labelledby';
+            label = label.substring(1);
+        }
+
+        wrapper.innerHTML = config.templates[config.skeleton]({
+            content: config.templates[templateName](this.data)
+        });
         this.modal = wrapper.children[0];
-        this.modalContent = this.modal.querySelector(this.config.contentSelector);
-        this.modalContent.innerHTML = template.innerHTML;
+        this.modalContent = this.modal.querySelector(config.contentSelector);
+        this.modal.insertBefore(desc, this.modalContent);
         document.body.appendChild(this.modal);
+
+        // aria
+        this.modal.setAttribute('aria-hidden', 'true');
+        this.modal.setAttribute('role', 'dialog');
+        this.modal.setAttribute('aria-' + labelProp, label); //TODO
+        this.modal.setAttribute('aria-describedby', desc.id); //TODO
+        this.modal.setAttribute('tabindex', '-1');
     };
 
     ModalInstance.prototype.open = function() {
@@ -137,6 +160,11 @@
         this.modal.offsetWidth; // trigger layout
         this.modal.classList.add(classes.active); // animate in
 
+        // aria
+        this.modal.setAttribute('aria-hidden', 'false');
+        this.previousFocus = document.activeElement;
+        this.modal.focus();
+
         // add listeners
         this.modal.addEventListener('click', this.handleModalClick, false);
     };
@@ -147,12 +175,15 @@
         }
         this.isOpen = false;
 
+        // aria
+        this.modal.setAttribute('aria-hidden', 'true');
+
         // remove after animation
         if (hasTransitions) {
             this.modal.addEventListener('transitionend', this.handleExitEnd, false);
             this.modal.addEventListener('webkitTransitionEnd', this.handleExitEnd, false);
         } else {
-            this.modal.classList.remove(this.config.classes.positioned);
+            this.handleExitEnd();
         }
 
         // animate out
@@ -174,6 +205,11 @@
     ModalInstance.prototype._onExitEnd = function() {
         // remove from DOM
         this.modal.classList.remove(this.config.classes.positioned);
+
+        if (this.previousFocus) {
+            this.previousFocus.focus();
+            this.previousFocus = null;
+        }
 
         // remove event listener
         if (hasTransitions) {
@@ -204,6 +240,19 @@
         }
     };
 
+    ModalInstance.prototype._createDescription = function() {
+        var desc = this.data.desc;
+        var description = document.createElement('span');
+
+        description.id = 'modal' + this.id + '-description';
+        description.style.position = 'absolute';
+        description.style.top = '-9999px';
+        description.style.left = '-9999px';
+        description.innerHTML = desc;
+
+        return description;
+    };
+
     /**
      * Modal Service constructor
      *
@@ -211,8 +260,10 @@
      * @constructor
      */
     var ModalService = function(config) {
+        if (!config.templates) {
+            throw new Error('ModalError: templates object must be supplied to service');
+        }
         this.config = extend(defaults, config);
-        this.config.skeleton = document.getElementById(config.skeleton).innerHTML;
         this._modalStack = [];
 
         this.handleEscDown = this._onEscDown.bind(this);
@@ -220,22 +271,39 @@
         document.body.addEventListener('keydown', this.handleEscDown, false);
     };
 
-    ModalService.prototype.create = function(templateName) {
-        var modal = new ModalInstance(templateName, this);
+    ModalService.prototype.create = function(templateName, data) {
+        if (!data || typeof data.label !== 'string' || typeof data.desc !== 'string') {
+            throw new Error('ModalError: label and desc properties must be supplied to modals.');
+        }
+        var modal = new ModalInstance(templateName, data, this);
         this._modalStack.push(modal);
+        modalCounter++;
         return modal;
     };
 
     ModalService.prototype.alert = function(alertText) {
-        return this.create(this.config.templates.alert);
+        return this.create(this.config.templateNames.alert, {
+            alertText: alertText,
+            label: 'Alert',
+            desc: alertText
+        });
     };
 
     ModalService.prototype.confirm = function(confirmText) {
-        return this.create(this.config.templates.confirm);
+        return this.create(this.config.templateNames.confirm, {
+            confirmText: confirmText,
+            label: 'Confirm',
+            desc: confirmText
+        });
     };
 
     ModalService.prototype.prompt = function(promptText, defaultInput) {
-        return this.create(this.config.templates.prompt);
+        return this.create(this.config.templateNames.prompt, {
+            promptText: promptText,
+            defaultInput: defaultInput,
+            label: 'Confirm',
+            desc: promptText
+        });
     };
 
     ModalService.prototype._onEscDown = function(event) {
