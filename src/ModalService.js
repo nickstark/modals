@@ -149,7 +149,7 @@
 
         // aria
         this.modal.setAttribute('aria-hidden', 'true');
-        this.modal.setAttribute('role', 'dialog');
+        this.modal.setAttribute('role', 'alertdialog');
         this.modal.setAttribute('aria-' + labelProp, label); //TODO
         this.modal.setAttribute('aria-describedby', desc.id); //TODO
         this.modal.setAttribute('tabindex', '-1');
