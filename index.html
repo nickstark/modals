@@ -21,6 +21,7 @@
         This is an alert! <button type="button" data-modal-close>Ok</button>
     </script>
 
+    <script src="build/classList.js"></script>
     <script src="build/ModalService.js"></script>
     <script>
         var button = document.getElementById('modal-demo');
@@ -34,12 +35,15 @@
                     return 'Some normal modal content';
                 },
                 'alertModal': function(data) {
-                    return data.alertText + '<button type="button" data-modal-close>Ok</button>';
+                    return '<p>' + data.alertText + '</p><button type="button" data-modal-close>Ok</button>';
+                },
+                'confirmModal': function(data) {
+                    return '<p>' + data.confirmText + '</p><button type="button" data-modal-close>cancel</button><button type="button" data-modal-close>Ok</button>';
                 }
             }
         });
         button.addEventListener('click', function() {
-            window.modal = service.alert('modalTest-content');
+            window.modal = service.confirm('modalTest-content');
             modal.open();
         }, false);
     </script>

@@ -11,6 +11,7 @@
     'use strict';
 
     var modalCounter = 0;
+    var focusableElements = "a[href],area[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),button:not([disabled]),iframe,object,embed,[tabindex],[contenteditable]";
 
     // check for transition support
     var hasTransitions = (function() {
@@ -79,7 +80,11 @@
         return extended;
     };
 
+    /**
+     * Util function to check if element matches selector
+     */
     var matches = (function() {
+        var funcName;
         if (typeof Element.prototype.matches === 'function') {
             return function(node, selector) {
                 return node.matches(selector);
@@ -87,14 +92,15 @@
         }
         var prefixes = ['webkit', 'ms', 'moz'];
         for (var prefix in prefixes) {
-            if (typeof Element.prototype[prefix + 'MatchesSelector'] === 'function') {
+            funcName = prefixes[prefix] + 'MatchesSelector';
+            if (typeof Element.prototype[funcName] === 'function') {
                 return function(node, selector) {
-                    return node[prefix + 'MatchesSelector'](selector);
+                    return node[funcName](selector);
                 }
             }
         }
 
-        throw new Error('Unsupported: unable to match selectors.')
+        throw new Error('Modals Unsupported: unable to match selectors.')
     }());
 
     /**
@@ -112,6 +118,7 @@
 
         this.handleExitEnd = this._onExitEnd.bind(this);
         this.handleModalClick = this._onModalClick.bind(this);
+        this.handleTabDown = this._onTabDown.bind(this);
 
         this._loadTemplate(templateName);
     };
@@ -167,6 +174,7 @@
 
         // add listeners
         this.modal.addEventListener('click', this.handleModalClick, false);
+        this.modal.addEventListener('keydown', this.handleTabDown, true);
     };
 
     ModalInstance.prototype.exit = function() {
@@ -182,8 +190,6 @@
         if (hasTransitions) {
             this.modal.addEventListener('transitionend', this.handleExitEnd, false);
             this.modal.addEventListener('webkitTransitionEnd', this.handleExitEnd, false);
-        } else {
-            this.handleExitEnd();
         }
 
         // animate out
@@ -191,9 +197,14 @@
 
         // remove click handler
         this.modal.removeEventListener('click', this.handleModalClick, false);
+        this.modal.removeEventListener('keydown', this.handleTabDown, true);
 
         // remove from modal stack
         this.service._removeFromStack(this);
+
+        if (!hasTransitions) {
+            this.handleExitEnd();
+        }
     };
 
     ModalInstance.prototype.remove = function() {
@@ -237,6 +248,28 @@
                 break;
             }
             node = node.parentNode;
+        }
+    };
+
+    ModalInstance.prototype._onTabDown = function(event) {
+        if (event.keyCode !== 9) {
+            return;
+        }
+        var modal = this.modal;
+        var els = modal.querySelectorAll(focusableElements);
+        var active = document.activeElement;
+        var forward = !event.shiftKey;
+        var numElements = els.length;
+        if (!numElements) {
+            event.preventDefault();
+            return;
+        }
+        if (!forward && (active === modal || active === els[0])) {
+            event.preventDefault();
+            els[numElements - 1].focus();
+        } else if (forward && active === els[numElements - 1]) {
+            event.preventDefault();
+            els[0].focus();
         }
     };
 

@@ -14,8 +14,12 @@
     display: inline-block;
     max-width: 90%;
     margin: 200px auto 0;
+    padding: 20px;
+    font: 1em/1.5 Arial, Helvetica, sans-serif;
     background: #ffffff;
     text-align: left;
+    border-radius: 3px;
+    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.3)
 }
 
 .modal_isPositioned {
