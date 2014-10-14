@@ -85,11 +85,13 @@
      */
     var matches = (function() {
         var funcName;
+        // matches
         if (typeof Element.prototype.matches === 'function') {
             return function(node, selector) {
                 return node.matches(selector);
             }
         }
+        // matchesSelector
         var prefixes = ['webkit', 'ms', 'moz'];
         for (var prefix in prefixes) {
             funcName = prefixes[prefix] + 'MatchesSelector';
@@ -98,6 +100,17 @@
                     return node[funcName](selector);
                 }
             }
+        }
+        // use querySelectorAll
+        if (typeof proto.querySelectorAll === 'function') {
+            return function(node, selector) {
+                var matches = (node.parentNode || document).querySelectorAll(selector);
+                var i = 0;
+                while (matches[i] && matches[i] !== node) {
+                    ++i;
+                }
+                return !!matches[i];
+            };
         }
 
         throw new Error('Modals Unsupported: unable to match selectors.')
